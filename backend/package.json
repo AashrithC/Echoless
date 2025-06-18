@@ -1,0 +1,29 @@
+{
+  "name": "echoless-backend",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "dev": "nodemon index.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": ["audio", "chat", "webrtc", "socketio"],
+  "author": "",
+  "license": "ISC",
+  "description": "Echoless backend server for real-time audio chat",
+  "dependencies": {
+    "cors": "^2.8.5",
+    "dotenv": "^16.5.0",
+    "express": "^5.1.0",
+    "redis": "^5.5.6",
+    "socket.io": "^4.8.1",
+    "twilio": "^5.7.1",
+    "uuid": "^11.1.0"
+  },
+  "devDependencies": {
+    "@types/cors": "^2.8.19",
+    "@types/express": "^5.0.3",
+    "@types/uuid": "^10.0.0",
+    "nodemon": "^3.1.10"
+  }
+}
