@@ -525,7 +525,7 @@ export default function RoomPage() {
                       playsInline
                       ref={(audio) => {
                         if (audio && peers[user.id]?.stream) {
-                          audio.srcObject = peers[user.id].stream;
+                          audio.srcObject = peers[user.id].stream!;
                         }
                       }}
                     />
