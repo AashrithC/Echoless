@@ -183,6 +183,37 @@ io.on('connection', (socket) => {
     }
   });
 
+  // Handle chat messages
+  socket.on('send-chat-message', async (data) => {
+    const { message, timestamp } = data;
+    const participantId = socket.id;
+
+    try {
+      // Get user data and room
+      const userData = await redisClient.hGetAll(`participant:${participantId}`);
+      const roomId = userData.roomId;
+      
+      if (roomId && userData.nickname) {
+        // Create message object
+        const chatMessage = {
+          id: uuidv4(),
+          senderId: participantId,
+          senderNickname: userData.nickname,
+          message: message,
+          timestamp: timestamp
+        };
+
+        // Broadcast message to all users in room (including sender)
+        io.to(roomId).emit('broadcast-chat-message', chatMessage);
+        
+        console.log(`Chat message from ${userData.nickname} in room ${roomId}: ${message}`);
+      }
+
+    } catch (error) {
+      console.error('Error handling chat message:', error);
+    }
+  });
+
   // Handle disconnection (critical for self-destruct)
   socket.on('disconnect', async () => {
     const participantId = socket.id;

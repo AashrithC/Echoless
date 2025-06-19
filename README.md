@@ -6,6 +6,7 @@ A real-time, ephemeral audio chat application. Create temporary chat rooms that 
 
 - **Instant Room Creation**: Create audio chat rooms with a single click
 - **Real-time Audio**: High-quality peer-to-peer audio streaming using WebRTC
+- **Ephemeral Text Chat**: Send messages that disappear when the room is destroyed
 - **Privacy First**: All data is deleted when the last person leaves
 - **No Accounts**: No registration or login required
 - **Shareable Links**: Invite others with a simple room link
@@ -89,20 +90,82 @@ The backend will be available at `http://localhost:3001`
 
 ## Deployment
 
-### Frontend (Vercel)
+### Prerequisites
 
-1. Connect your GitHub repository to Vercel
-2. Set environment variables in Vercel dashboard:
-   - `NEXT_PUBLIC_WEBSOCKET_URL`: Your deployed backend URL
+- GitHub repository with your code
+- Free accounts on [Vercel](https://vercel.com) and [Railway](https://railway.app)
+- Optional: [Twilio account](https://console.twilio.com/) for TURN servers
 
-### Backend (Railway)
+### Step 1: Deploy Backend to Railway
 
-1. Connect your GitHub repository to Railway
-2. Set environment variables in Railway dashboard:
-   - `FRONTEND_URL`: Your deployed frontend URL
-   - `REDIS_URL`: Railway Redis add-on URL
-   - `TWILIO_ACCOUNT_SID`: Your Twilio Account SID
-   - `TWILIO_AUTH_TOKEN`: Your Twilio Auth Token
+1. Log in to Railway and click "New Project"
+2. Select "Deploy from GitHub repo" and choose your repository
+3. Point Railway to your `backend` directory
+4. Add environment variables in Railway's "Variables" tab:
+   - `REDIS_URL`: Add Redis database from Railway marketplace
+   - `TWILIO_ACCOUNT_SID`: Your Twilio Account SID (optional)
+   - `TWILIO_AUTH_TOKEN`: Your Twilio Auth Token (optional)
+   - `FRONTEND_URL`: Leave blank for now
+5. Copy your Railway backend URL from the "Domains" section
+
+### Step 2: Deploy Frontend to Vercel
+
+1. Log in to Vercel and click "Add New... -> Project"
+2. Select your GitHub repository
+3. Add environment variable:
+   - `NEXT_PUBLIC_WEBSOCKET_URL`: Your Railway backend URL with `wss://` protocol
+   - Example: `wss://echoless-backend-production-abc123.up.railway.app`
+4. Click "Deploy"
+5. Copy your Vercel frontend URL after deployment completes
+
+### Step 3: Update Backend Configuration
+
+1. Go back to Railway backend project
+2. Update the `FRONTEND_URL` variable with your Vercel URL
+3. Railway will automatically redeploy with the updated configuration
+
+### Step 4: Configure Custom Domain (Optional)
+
+#### For Frontend (Vercel)
+
+1. In your Vercel project dashboard, go to "Settings" → "Domains"
+2. Add your custom domain (e.g., `echoless.yourdomain.com`)
+3. Follow Vercel's DNS configuration instructions:
+   - **For subdomain**: Add a CNAME record pointing to `cname.vercel-dns.com`
+   - **For apex domain**: Add A records pointing to Vercel's IP addresses
+4. Wait for DNS propagation (usually 5-60 minutes)
+5. Vercel will automatically provision an SSL certificate
+
+#### For Backend (Railway) - Optional
+
+1. In Railway project settings, go to "Domains"
+2. Click "Custom Domain" and add your backend domain (e.g., `api.yourdomain.com`)
+3. Add a CNAME record in your DNS settings pointing to your Railway URL
+4. Railway will handle SSL certificate provisioning
+
+#### Update Environment Variables for Custom Domains
+
+After setting up custom domains, update your environment variables:
+
+**In Vercel (Frontend):**
+- Update `NEXT_PUBLIC_WEBSOCKET_URL` to use your custom backend domain
+- Example: `wss://api.yourdomain.com`
+
+**In Railway (Backend):**
+- Update `FRONTEND_URL` to use your custom frontend domain
+- Example: `https://echoless.yourdomain.com`
+
+#### DNS Configuration Example
+
+For a domain like `yourdomain.com`, add these DNS records:
+
+```
+Type    Name        Value
+CNAME   echoless    cname.vercel-dns.com
+CNAME   api         your-backend-production-abc123.up.railway.app
+```
+
+Your app is now live with your custom domain! 🎉
 
 ## How It Works
 
@@ -125,6 +188,7 @@ The backend will be available at `http://localhost:3001`
 - `sending-signal` - Send WebRTC signal to another user
 - `returning-signal` - Return WebRTC signal
 - `update-my-state` - Update user state (mute/unmute)
+- `send-chat-message` - Send a text message to the room
 
 #### Server to Client
 - `room-joined` - Successfully joined room
@@ -132,6 +196,7 @@ The backend will be available at `http://localhost:3001`
 - `user-left` - User left the room
 - `receiving-returned-signal` - Receive returned WebRTC signal
 - `user-state-changed` - User state changed
+- `broadcast-chat-message` - Receive a text message from another user
 
 ## Contributing
 
