@@ -79,7 +79,6 @@ export default function RoomPage() {
   const [peers, dispatch] = useReducer(peersReducer, {});
   const socketRef = useRef<Socket | null>(null);
   const myStreamRef = useRef<MediaStream | null>(null);
-  const myAudioRef = useRef<HTMLAudioElement>(null);
 
   const joinRoom = async () => {
     if (!nickname.trim()) return;
@@ -98,7 +97,7 @@ export default function RoomPage() {
       myStreamRef.current = stream;
 
       // Connect to Socket.IO server
-      const socket = io(process.env.NEXT_PUBLIC_WEBSOCKET_URL || 'http://localhost:3001');
+      const socket = io(process.env.NEXT_PUBLIC_WEBSOCKET_URL || 'http://localhost:8080');
       socketRef.current = socket;
 
       // Set up socket event listeners
@@ -156,7 +155,7 @@ export default function RoomPage() {
     }
   };
 
-  const createPeer = (userToSignal: string, callerID: string, stream: MediaStream, iceServers: any[]) => {
+  const createPeer = (userToSignal: string, callerID: string, stream: MediaStream, iceServers: RTCIceServer[]) => {
     const peer = new Peer({
       initiator: true,
       trickle: false,
@@ -177,7 +176,7 @@ export default function RoomPage() {
     dispatch({ type: 'ADD_PEER', payload: { peerId: userToSignal, peer } });
   };
 
-  const addPeer = (incomingSignal: any, callerID: string, stream: MediaStream) => {
+  const addPeer = (incomingSignal: Peer.SignalData, callerID: string, stream: MediaStream) => {
     const peer = new Peer({
       initiator: false,
       trickle: false,
@@ -246,7 +245,7 @@ export default function RoomPage() {
       }
       Object.values(peers).forEach(({ peer }) => peer.destroy());
     };
-  }, []);
+  }, [peers]);
 
   if (!hasJoined) {
     return (
@@ -313,7 +312,7 @@ export default function RoomPage() {
                 <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
                   <path fillRule="evenodd" d="M7 4a3 3 0 016 0v4a3 3 0 11-6 0V4zm4 10.93A7.001 7.001 0 0017 8a1 1 0 10-2 0A5 5 0 015 8a1 1 0 00-2 0 7.001 7.001 0 006 6.93V17H6a1 1 0 100 2h8a1 1 0 100-2h-3v-2.07z" clipRule="evenodd" />
                 </svg>
-                <span>We'll need microphone access to join</span>
+                <span>We&apos;ll need microphone access to join</span>
               </div>
               <p className="text-gray-400 text-xs">
                 Your voice will be transmitted securely via peer-to-peer connection
@@ -547,9 +546,9 @@ export default function RoomPage() {
                     <path d="M13 6a3 3 0 11-6 0 3 3 0 016 0zM18 8a2 2 0 11-4 0 2 2 0 014 0zM14 15a4 4 0 00-8 0v3h8v-3z"></path>
                   </svg>
                 </div>
-                <h3 className="text-gray-900 font-semibold mb-2">You're alone in this room</h3>
+                <h3 className="text-gray-900 font-semibold mb-2">You&apos;re alone in this room</h3>
                 <p className="text-gray-600 max-w-md mx-auto">
-                  Share the room link to start your conversation. They'll join instantly with no signup required.
+                  Share the room link to start your conversation. They&apos;ll join instantly with no signup required.
                 </p>
               </div>
             )}
