@@ -1,271 +1,150 @@
-# Echoless
+# Echoless: Real-time Ephemeral Audio Chat
 
-A real-time, ephemeral audio chat application. Create temporary chat rooms that self-destruct when the last participant leaves.
+A web-based audio-only chat application where conversations are permanently deleted the moment the last person leaves the room.
 
-## Features
+> **Suggestion**: Create a short screen recording of two browser windows interacting and convert it to a GIF to showcase the real-time audio chat functionality.
 
-- **Instant Room Creation**: Create audio chat rooms with a single click
-- **Real-time Audio**: High-quality peer-to-peer audio streaming using WebRTC
-- **Ephemeral Text Chat**: Send messages that disappear when the room is destroyed
-- **Privacy First**: All data is deleted when the last person leaves
-- **No Accounts**: No registration or login required
-- **Shareable Links**: Invite others with a simple room link
+## Core Concept
 
-## Architecture
+Echoless solves the problem of "digital residue" from casual online conversations. It provides a platform for creating temporary, audio-only chat rooms that are ephemeral by design. By leveraging WebRTC for direct peer-to-peer audio streams and a Redis-backed presence system, the application ensures that once a conversation is over, it's gone for good.
 
-- **Frontend**: Next.js with TypeScript, deployed on Vercel
-- **Backend**: Node.js with Express and Socket.IO, deployed on Fly.io
-- **Database**: Redis for ephemeral state management
-- **WebRTC**: Twilio TURN servers for peer-to-peer connections
+## Technical Architecture
 
-## Development Setup
+The system uses a decoupled frontend and backend to optimize for scalability and maintainability.
 
-### Prerequisites
+- **Frontend (Next.js on Vercel)**: A server-rendered React application responsible for the UI and all client-side logic. It handles the initial HTTP request to create a room.
+- **Signaling Server (Node.js/Express on Fly.io)**: A stateful WebSocket server that manages user presence, signaling for WebRTC handshakes, and chat message broadcasting. It is the authority for the "self-destruct" mechanism.
+- **Database (Redis)**: An in-memory data store used for its speed in managing the real-time state of active rooms and participant lists. No conversation data is ever stored here.
+- **WebRTC**: Enables direct peer-to-peer, low-latency audio streaming between clients, minimizing server load and enhancing privacy.
 
-- Node.js 18+ 
-- Redis server
-- Twilio account (optional, for TURN servers)
+## Technology Stack
 
-### Frontend Setup
+### Frontend
+- **Framework**: Next.js / React
+- **Language**: TypeScript
+- **Real-time**: Socket.IO Client, Simple-Peer (for WebRTC)
+- **Styling**: Tailwind CSS
 
-1. Install dependencies:
+### Backend
+- **Framework**: Node.js / Express
+- **Language**: JavaScript
+- **Real-time**: Socket.IO
+- **Database**: Redis
+
+## Key Features
+
+- 🎙️ **Crystal Clear Audio**: High-quality peer-to-peer voice streaming
+- 🔒 **Zero Persistence**: Conversations are permanently deleted when rooms empty
+- ⚡ **Instant Connection**: No sign-up required, join with just a nickname
+- 💬 **Integrated Chat**: Real-time text messaging alongside voice
+- 📱 **Cross-Platform**: Works on desktop and mobile browsers
+- 🌐 **Global Reach**: STUN/TURN server support for worldwide connectivity
+
+## File Structure
+
+The repository is structured as a monorepo with two primary packages:
+
+```
+/
+├── src/                  # Next.js frontend application
+│   ├── app/
+│   │   ├── page.tsx     # Landing page with room creation
+│   │   └── room/        # Room interface and WebRTC logic
+│   └── ...
+├── backend/              # Node.js/Express signaling server
+│   ├── index.js         # Main server with Socket.IO handlers
+│   └── package.json
+├── public/              # Static assets
+└── README.md
+```
+
+## Running the Development Environment
+
+To run this project locally, you will need Node.js, npm, and a running Redis instance.
+
+### 1. Clone the repository
+
 ```bash
-npm install
+git clone https://github.com/your-username/echoless.git
+cd echoless
 ```
 
-2. Create environment file:
-```bash
-cp .env.local.example .env.local
-```
+### 2. Install backend dependencies
 
-3. Update `.env.local` with your configuration:
-```
-NEXT_PUBLIC_WEBSOCKET_URL=ws://localhost:8080
-```
-
-4. Start the development server:
-```bash
-npm run dev
-```
-
-The frontend will be available at `http://localhost:3000`
-
-### Backend Setup
-
-1. Navigate to backend directory:
 ```bash
 cd backend
-```
-
-2. Install dependencies:
-```bash
 npm install
 ```
 
-3. Create environment file:
+### 3. Install frontend dependencies
+
 ```bash
-cp .env.example .env
+cd ../
+npm install
 ```
 
-4. Update `.env` with your configuration:
-```env
-PORT=8080
+### 4. Set up environment variables
+
+**Frontend (.env.local):**
+```bash
+NEXT_PUBLIC_WEBSOCKET_URL=http://localhost:8080
+```
+
+**Backend (.env):**
+```bash
+# Frontend URL for CORS
 FRONTEND_URL=http://localhost:3000
+
+# Redis Configuration
 REDIS_URL=redis://localhost:6379
+
+# Optional: Twilio for TURN servers (improves connectivity)
 TWILIO_ACCOUNT_SID=your_twilio_account_sid_here
 TWILIO_AUTH_TOKEN=your_twilio_auth_token_here
 ```
 
-5. Start Redis server (if running locally):
+### 5. Start Redis
+
+Make sure you have Redis running locally:
 ```bash
 redis-server
 ```
 
-6. Start the backend server:
+### 6. Run the servers
+
+**Start the backend server:**
 ```bash
+cd backend
+npm start
+```
+
+**Start the frontend development server:**
+```bash
+cd ../
 npm run dev
 ```
 
-The backend will be available at `http://localhost:8080`
-
-## Deployment
-
-### Prerequisites
-
-- GitHub repository with your code
-- Free accounts on [Vercel](https://vercel.com) and [Fly.io](https://fly.io)
-- [Fly CLI](https://fly.io/docs/hands-on/install-flyctl/) installed locally
-- Optional: [Twilio account](https://console.twilio.com/) for TURN servers
-
-### Step 1: Deploy Backend to Fly.io
-
-1. **Install Fly CLI and authenticate:**
-   ```bash
-   # Install flyctl (if not already installed)
-   curl -L https://fly.io/install.sh | sh
-   
-   # Login to Fly.io
-   flyctl auth login
-   ```
-
-2. **Navigate to backend directory:**
-   ```bash
-   cd backend
-   ```
-
-3. **Initialize Fly app:**
-   ```bash
-   flyctl launch --no-deploy
-   ```
-   - Choose a unique app name (e.g., `echoless-backend-yourname`)
-   - Select a region closest to your users
-   - Don't deploy yet - we need to set up environment variables first
-
-4. **Add Redis database:**
-   ```bash
-   flyctl redis create
-   ```
-   - Choose the same region as your app
-   - Copy the Redis connection URL provided
-
-5. **Set environment variables:**
-   ```bash
-   flyctl secrets set REDIS_URL="your_redis_connection_url"
-   flyctl secrets set TWILIO_ACCOUNT_SID="your_twilio_sid" # optional
-   flyctl secrets set TWILIO_AUTH_TOKEN="your_twilio_token" # optional
-   flyctl secrets set FRONTEND_URL="https://localhost:3000" # temporary
-   ```
-
-6. **Deploy the backend:**
-   ```bash
-   flyctl deploy
-   ```
-
-7. **Get your backend URL:**
-   ```bash
-   flyctl info
-   ```
-   Copy the hostname (e.g., `echoless-backend-yourname.fly.dev`)
-
-### Step 2: Deploy Frontend to Vercel
-
-1. Log in to Vercel and click "Add New... -> Project"
-2. Select your GitHub repository
-3. Add environment variable:
-   - `NEXT_PUBLIC_WEBSOCKET_URL`: Your Fly.io backend URL with `wss://` protocol
-   - Example: `wss://echoless-backend.fly.dev`
-4. Click "Deploy"
-5. Copy your Vercel frontend URL after deployment completes
-
-### Step 3: Update Backend Configuration
-
-1. **Update backend with frontend URL:**
-   ```bash
-   cd backend
-   flyctl secrets set FRONTEND_URL="https://echoless.live"
-   ```
-
-2. **Verify deployment:**
-   ```bash
-   flyctl logs
-   ```
-
-### Step 4: Configure Custom Domain (Optional)
-
-#### For Frontend (Vercel)
-
-1. In your Vercel project dashboard, go to "Settings" → "Domains"
-2. Add your custom domain (`echoless.live`)
-3. Follow Vercel's DNS configuration instructions:
-   - **For apex domain**: Add A records pointing to Vercel's IP addresses
-   - **For www subdomain**: Add a CNAME record pointing to `cname.vercel-dns.com`
-4. Wait for DNS propagation (usually 5-60 minutes)
-5. Vercel will automatically provision an SSL certificate
-
-#### For Backend (Fly.io) - Optional
-
-1. **Add custom domain to Fly app:**
-   ```bash
-   cd backend
-   flyctl certs create api.echoless.live
-   ```
-
-2. **Configure DNS:**
-   - Add a CNAME record pointing to your Fly.io app
-   - Fly.io will provide the exact DNS configuration needed
-
-3. **Verify certificate:**
-   ```bash
-   flyctl certs show api.echoless.live
-   ```
-
-#### Update Environment Variables for Custom Domains
-
-After setting up custom domains, update your environment variables:
-
-**In Vercel (Frontend):**
-- Update `NEXT_PUBLIC_WEBSOCKET_URL` to use your custom backend domain
-- Example: `wss://api.echoless.live` (if using backend subdomain)
-- Or keep: `wss://echoless-backend.fly.dev` (if using default Fly.io domain)
-
-**In Fly.io (Backend):**
-- Update `FRONTEND_URL` to use your custom frontend domain:
-  ```bash
-  flyctl secrets set FRONTEND_URL="https://echoless.live"
-  ```
-
-#### DNS Configuration Example
-
-For the domain `echoless.live`, add these DNS records:
-
-```
-Type    Name              Value
-A       echoless.live     Vercel IP addresses (from Vercel dashboard)
-CNAME   www               cname.vercel-dns.com
-CNAME   api               echoless-backend.fly.dev (optional, for backend subdomain)
-```
-
-Your app is now live with your custom domain! 🎉
+The application will be available at `http://localhost:3000`.
 
 ## How It Works
 
-1. **Room Creation**: Users create rooms via the frontend API route
-2. **WebSocket Connection**: Users connect to the backend via Socket.IO
-3. **WebRTC Signaling**: The backend facilitates WebRTC connection setup
-4. **P2P Audio**: Audio streams directly between users (or via TURN relay)
-5. **Self-Destruct**: When the last user leaves, all room data is deleted
+1. **Room Creation**: Users create ephemeral rooms with a unique ID
+2. **WebRTC Signaling**: The backend facilitates peer-to-peer connection establishment
+3. **Audio Streaming**: Direct P2P audio streams between participants using WebRTC
+4. **Presence Management**: Redis tracks active participants in real-time
+5. **Self-Destruction**: Rooms are automatically deleted when the last participant leaves
 
-## API Documentation
+## WebRTC Implementation Details
 
-### REST Endpoints
-
-- `POST /api/rooms` - Create a new room
-
-### WebSocket Events
-
-#### Client to Server
-- `join-room` - Join a room with nickname
-- `sending-signal` - Send WebRTC signal to another user
-- `returning-signal` - Return WebRTC signal
-- `update-my-state` - Update user state (mute/unmute)
-- `send-chat-message` - Send a text message to the room
-
-#### Server to Client
-- `room-joined` - Successfully joined room
-- `user-joined` - New user joined the room
-- `user-left` - User left the room
-- `receiving-returned-signal` - Receive returned WebRTC signal
-- `user-state-changed` - User state changed
-- `broadcast-chat-message` - Receive a text message from another user
+- **Peer-to-Peer Audio**: Uses `simple-peer` library for WebRTC abstraction
+- **STUN/TURN Servers**: Configurable ICE servers for NAT traversal
+- **Signaling**: Custom Socket.IO events for offer/answer exchange
+- **Audio Processing**: Includes echo cancellation, noise suppression, and auto gain control
 
 ## Contributing
 
-1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Test thoroughly
-5. Submit a pull request
+This is a portfolio project, but suggestions and feedback are welcome! Feel free to open issues or submit pull requests.
 
 ## License
 
-MIT License - see LICENSE file for details
+This project is open source and available under the [MIT License](LICENSE).
