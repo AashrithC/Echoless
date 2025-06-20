@@ -94,6 +94,9 @@ export default function RoomPage() {
         } 
       });
       
+      console.log('Got user media stream:', stream);
+      console.log('Audio tracks:', stream.getAudioTracks());
+      
       myStreamRef.current = stream;
 
       // Connect to Socket.IO server
@@ -172,7 +175,16 @@ export default function RoomPage() {
     });
 
     peer.on('stream', (remoteStream) => {
+      console.log('Received remote stream from', userToSignal, remoteStream);
       dispatch({ type: 'SET_PEER_STREAM', payload: { peerId: userToSignal, stream: remoteStream } });
+    });
+
+    peer.on('error', (err) => {
+      console.error('Peer connection error:', err);
+    });
+
+    peer.on('connect', () => {
+      console.log('Peer connected:', userToSignal);
     });
 
     dispatch({ type: 'ADD_PEER', payload: { peerId: userToSignal, peer } });
@@ -182,6 +194,12 @@ export default function RoomPage() {
     const peer = new Peer({
       initiator: false,
       trickle: false,
+      config: {
+        iceServers: [
+          { urls: 'stun:stun.l.google.com:19302' },
+          { urls: 'stun:stun1.l.google.com:19302' }
+        ]
+      },
       stream
     });
 
@@ -190,7 +208,16 @@ export default function RoomPage() {
     });
 
     peer.on('stream', (remoteStream) => {
+      console.log('Received remote stream from', callerID, remoteStream);
       dispatch({ type: 'SET_PEER_STREAM', payload: { peerId: callerID, stream: remoteStream } });
+    });
+
+    peer.on('error', (err) => {
+      console.error('Peer connection error:', err);
+    });
+
+    peer.on('connect', () => {
+      console.log('Peer connected:', callerID);
     });
 
     peer.signal(incomingSignal);
@@ -527,7 +554,12 @@ export default function RoomPage() {
                       playsInline
                       ref={(audio) => {
                         if (audio && peers[user.id]?.stream) {
+                          console.log('Setting audio srcObject for user', user.id, peers[user.id].stream);
                           audio.srcObject = peers[user.id].stream!;
+                          audio.onloadedmetadata = () => {
+                            console.log('Audio metadata loaded for user', user.id);
+                            audio.play().catch(e => console.error('Error playing audio:', e));
+                          };
                         }
                       }}
                     />
