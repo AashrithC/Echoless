@@ -2,7 +2,7 @@
 
 A web-based audio-only chat application where conversations are permanently deleted the moment the last person leaves the room.
 
-> **Suggestion**: Create a short screen recording of two browser windows interacting and convert it to a GIF to showcase the real-time audio chat functionality.
+> **To-do**: Create a short screen recording of two browser windows interacting and convert it to a GIF to showcase the real-time audio chat functionality.
 
 ## Core Concept
 
