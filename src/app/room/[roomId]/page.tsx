@@ -113,11 +113,13 @@ export default function RoomPage() {
         setIsConnecting(false);
       });
 
-      socket.on('user-joined', ({ signal, callerID, newUser }) => {
+      socket.on('user-joined', ({ newUser }) => {
         if (newUser) {
           setUsers(prev => [...prev, newUser]);
         }
-        
+      });
+
+      socket.on('receiving-signal', ({ signal, callerID }) => {
         if (signal && callerID) {
           addPeer(signal, callerID, stream);
         }

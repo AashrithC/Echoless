@@ -153,7 +153,7 @@ The backend will be available at `http://localhost:8080`
 2. Select your GitHub repository
 3. Add environment variable:
    - `NEXT_PUBLIC_WEBSOCKET_URL`: Your Fly.io backend URL with `wss://` protocol
-   - Example: `wss://echoless-backend-yourname.fly.dev`
+   - Example: `wss://echoless-backend.fly.dev`
 4. Click "Deploy"
 5. Copy your Vercel frontend URL after deployment completes
 
@@ -162,7 +162,7 @@ The backend will be available at `http://localhost:8080`
 1. **Update backend with frontend URL:**
    ```bash
    cd backend
-   flyctl secrets set FRONTEND_URL="https://your-vercel-url.vercel.app"
+   flyctl secrets set FRONTEND_URL="https://echoless.live"
    ```
 
 2. **Verify deployment:**
@@ -175,10 +175,10 @@ The backend will be available at `http://localhost:8080`
 #### For Frontend (Vercel)
 
 1. In your Vercel project dashboard, go to "Settings" → "Domains"
-2. Add your custom domain (e.g., `echoless.yourdomain.com`)
+2. Add your custom domain (`echoless.live`)
 3. Follow Vercel's DNS configuration instructions:
-   - **For subdomain**: Add a CNAME record pointing to `cname.vercel-dns.com`
    - **For apex domain**: Add A records pointing to Vercel's IP addresses
+   - **For www subdomain**: Add a CNAME record pointing to `cname.vercel-dns.com`
 4. Wait for DNS propagation (usually 5-60 minutes)
 5. Vercel will automatically provision an SSL certificate
 
@@ -187,7 +187,7 @@ The backend will be available at `http://localhost:8080`
 1. **Add custom domain to Fly app:**
    ```bash
    cd backend
-   flyctl certs create api.yourdomain.com
+   flyctl certs create api.echoless.live
    ```
 
 2. **Configure DNS:**
@@ -196,7 +196,7 @@ The backend will be available at `http://localhost:8080`
 
 3. **Verify certificate:**
    ```bash
-   flyctl certs show api.yourdomain.com
+   flyctl certs show api.echoless.live
    ```
 
 #### Update Environment Variables for Custom Domains
@@ -205,22 +205,24 @@ After setting up custom domains, update your environment variables:
 
 **In Vercel (Frontend):**
 - Update `NEXT_PUBLIC_WEBSOCKET_URL` to use your custom backend domain
-- Example: `wss://api.yourdomain.com`
+- Example: `wss://api.echoless.live` (if using backend subdomain)
+- Or keep: `wss://echoless-backend.fly.dev` (if using default Fly.io domain)
 
 **In Fly.io (Backend):**
 - Update `FRONTEND_URL` to use your custom frontend domain:
   ```bash
-  flyctl secrets set FRONTEND_URL="https://echoless.yourdomain.com"
+  flyctl secrets set FRONTEND_URL="https://echoless.live"
   ```
 
 #### DNS Configuration Example
 
-For a domain like `yourdomain.com`, add these DNS records:
+For the domain `echoless.live`, add these DNS records:
 
 ```
-Type    Name        Value
-CNAME   echoless    cname.vercel-dns.com
-CNAME   api         your-app-name.fly.dev
+Type    Name              Value
+A       echoless.live     Vercel IP addresses (from Vercel dashboard)
+CNAME   www               cname.vercel-dns.com
+CNAME   api               echoless-backend.fly.dev (optional, for backend subdomain)
 ```
 
 Your app is now live with your custom domain! 🎉

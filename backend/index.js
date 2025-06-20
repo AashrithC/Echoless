@@ -150,7 +150,7 @@ io.on('connection', (socket) => {
   // Handle WebRTC signaling
   socket.on('sending-signal', (data) => {
     const { userToSignal, callerID, signal } = data;
-    io.to(userToSignal).emit('user-joined', { signal, callerID });
+    io.to(userToSignal).emit('receiving-signal', { signal, callerID });
   });
 
   socket.on('returning-signal', (data) => {
