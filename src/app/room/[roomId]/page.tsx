@@ -247,7 +247,7 @@ export default function RoomPage() {
       }
       Object.values(peers).forEach(({ peer }) => peer.destroy());
     };
-  }, [peers]);
+  }, []); // Remove peers dependency to prevent cleanup on every peer change
 
   if (!hasJoined) {
     return (
